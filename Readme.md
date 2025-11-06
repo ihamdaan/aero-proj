@@ -49,7 +49,7 @@ The scraper uses Selenium WebDriver to simulate authentic browser behavior, succ
 
 The extracted data is systematically stored in a CSV format, providing a reusable dataset that can feed into customer relationship management systems, outreach automation tools, or business intelligence platforms. The scraper's design emphasizes reliability and stealth through multiple strategies: incremental saving ensures no data loss during interruptions, headless browser mode enables server deployment, proxy rotation capabilities help distribute requests, and fake user-agent randomization mimics diverse browser profiles to avoid detection patterns.
 
-For detailed implementation specifics, setup instructions, and architectural decisions, refer to the dedicated documentation: **first_linkedinScraper_app/README.md**
+For detailed implementation specifics, setup instructions, and architectural decisions, refer to the dedicated documentation: **first_linkedinScraper_app/Readme.md**
 
 ## Project 2: second_autodialer_app
 
@@ -63,7 +63,7 @@ The Rails backend communicates with a specialized FastAPI-based LLM microservice
 
 Additionally, the application integrates with the third_personalizedContent_app to populate its built-in blog interface with dynamically generated AI articles, demonstrating practical API-based interoperability between independent projects in a microservices architecture.
 
-For complete architectural details, deployment strategies, and configuration options, consult the comprehensive guide: **second_autodialer_app/README.md**
+For complete architectural details, deployment strategies, and configuration options, consult the comprehensive guide: **second_autodialer_app/Readme.md**
 
 ## Project 3: third_personalizedContent_app
 
@@ -75,7 +75,7 @@ This architecture demonstrates how AI writing assistants can be modularized and 
 
 The service also implements robust error handling, request validation through Pydantic models, and comprehensive logging to facilitate debugging and monitoring in production environments.
 
-For API specifications, model selection rationale, and integration examples, see the detailed documentation: **third_personalizedContent_app/README.md**
+For API specifications, model selection rationale, and integration examples, see the detailed documentation: **third_personalizedContent_app/Readme.md**
 
 ## Design Philosophy
 

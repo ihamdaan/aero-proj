@@ -1,8 +1,8 @@
 require_relative "boot"
-
-require "rails/all"
-
-require_relative "../lib/in_memory_store"
+require "rails"
+require "action_controller/railtie"
+require "action_view/railtie"
+require "active_model/railtie"
 
 Bundler.require(*Rails.groups)
 

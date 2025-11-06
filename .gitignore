@@ -1,0 +1,11 @@
+first_linkedinScraper_app/.env
+second_autodialer_app/autodialer/.env
+second_autodialer_app/llm_service/.env
+second_autodialer_app/llm_service/.vercel
+third_personalizedContent_app/.env
+third_personalizedContent_app/.vercel
+
+first_linkedinScraper_app/venv
+
+**/.env
+**/.vercel

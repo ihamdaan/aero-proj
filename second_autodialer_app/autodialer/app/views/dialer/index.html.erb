@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Autodialer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .glass-dark {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .slide-in {
+      animation: slideIn 0.4s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+    
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-5xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+        <span class="text-6xl">📞</span> Autodialer
+      </h1>
+      <p class="text-gray-600 text-lg">Intelligent automated calling system</p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left Column: Control Panel -->
+      <div class="lg:col-span-1 space-y-6">
+        
+        <!-- Step 1: Choose Input Method -->
+        <div id="step1" class="glass-dark rounded-2xl shadow-2xl p-6 slide-in my-6">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Choose Input Method</h2>
+          
+          <div class="space-y-3">
+            <button 
+              id="chooseTextCommand"
+              class="w-full hover:from-purple-700 hover:to-indigo-700 text-blue-800 font-medium py-3 px-4 rounded-xl transition transform hover:scale-105 shadow-lg">
+              Write Natural Language Command
+            </button>
+            
+            <button 
+              id="chooseDirectNumber"
+              class="w-full hover:from-blue-700 hover:to-cyan-700 text-blue-800 font-medium py-3 px-4 rounded-xl transition transform hover:scale-105 shadow-lg">
+              Enter Phone Numbers Directly
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2a: Text Command Panel -->
+        <div id="textCommandPanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Natural Language Input</h2>
+            <button id="backFromText" class="text-sm text-gray-600 hover:text-gray-800">← Back</button>
+          </div>
+          
+          <input 
+            id="aiPromptInput"
+            type="text"
+            class="w-full p-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-4 bg-white/80"
+            placeholder="e.g., 'Call this number 9876543210' or 'Dial +91-9123456789'"
+          />
+          
+          <button 
+            id="aiPromptBtn"
+            class="w-full hover: text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+            Execute Command
+          </button>
+          
+          <div id="aiPromptStatus" class="mt-3 text-sm"></div>
+        </div>
+
+        <!-- Step 2b: Direct Number Panel -->
+        <div id="directNumberPanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Number Source</h2>
+            <button id="backFromDirect" class="text-sm text-gray-600 hover:text-gray-800">← Back</button>
+          </div>
+          
+          <div class="space-y-3">
+            <button 
+              id="chooseManualEntry"
+              class="w-full text-blue-800 hover:text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+              Enter My Own Numbers
+            </button>
+            
+            <button 
+              id="chooseRandomGenerate"
+              class="w-full hover:to-red-700 text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+              Generate Random Numbers
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3a: Manual Entry -->
+        <div id="manualEntryPanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Enter Numbers</h2>
+            <button id="backFromManual" class="text-sm text-gray-600 hover:text-gray-800">← Back</button>
+          </div>
+          
+          <textarea 
+            id="manualNumbersInput"
+            class="w-full h-40 p-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/80 mb-4"
+            placeholder="Enter numbers separated by commas&#10;e.g., 9876543210, 9123456789, 9988776655"
+          ></textarea>
+          
+          <button 
+            id="loadManualNumbers"
+            class="w-full hover:text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+            Load Numbers
+          </button>
+          
+          <div id="manualStatus" class="mt-3 text-sm"></div>
+        </div>
+
+        <!-- Step 3b: Random Generation -->
+        <div id="randomGeneratePanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Generate Random Numbers</h2>
+            <button id="backFromRandom" class="text-sm text-gray-600 hover:text-gray-800">← Back</button>
+          </div>
+          
+          <p class="text-sm text-gray-600 mb-4">Generate 100 random Indian toll-free numbers for testing</p>
+          
+          <button 
+            id="generateRandomBtn"
+            class="w-full hover:text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+            Generate 100 Numbers
+          </button>
+          
+          <div id="randomStatus" class="mt-3 text-sm"></div>
+        </div>
+
+        <!-- Step 4: Preview & Call Controls -->
+        <div id="callControlPanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Call Campaign</h2>
+          
+          <div class="bg-blue-50 rounded-lg p-4 mb-4">
+            <p class="text-sm text-gray-700">
+              <span class="font-semibold" id="loadedCount">0</span> numbers loaded
+            </p>
+          </div>
+          
+          <div class="space-y-3">
+            <button 
+              id="previewNumbersBtn"
+              class="w-full hover:to-blue-700 text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+              Preview Numbers
+            </button>
+
+            <input
+              id="customCommandInput"
+              type="text"
+              class="w-full p-3 border-2 border-blue-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 placeholder-gray-500 text-blue-800"
+              placeholder="You can enter custom call message (optional)"
+            />
+            
+            <button 
+              id="startCampaignBtn"
+              class="w-full hover:text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+              Start Calling
+            </button>
+            
+            <button 
+              id="stopCampaignBtn"
+              class="w-full text-red-800 font-medium py-3 px-4 rounded-xl transition shadow-lg hidden">
+              Stop Campaign
+            </button>
+          </div>
+          
+          <button 
+            id="resetBtn"
+            class="w-full mt-4 text-sm text-red-400 hover:text-red-600">
+            Start Over
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Call Logs & Preview -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Number Preview Panel -->
+        <div id="numberPreviewPanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Number Preview</h2>
+            <button id="closePreview" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-lg transition">
+              Close
+            </button>
+          </div>
+          
+          <div class="bg-white/80 rounded-lg p-4 max-h-96 overflow-y-auto">
+            <div id="previewContent" class="grid grid-cols-3 gap-2 text-sm font-mono"></div>
+          </div>
+        </div>
+
+        <!-- Call Logs -->
+        <div class="glass-dark rounded-2xl shadow-2xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800">Call Logs</h2>
+            <button 
+              id="clearLogsBtn"
+              class="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg transition">
+              Clear Logs
+            </button>
+          </div>
+          
+          <div class="overflow-x-auto bg-white/80 rounded-lg">
+            <table class="w-full text-sm">
+              <thead class="border-b-2 border-gray-200">
+                  <tr class="text-center">
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Number</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Action</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Custom Message</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Duration</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700">Time</th>
+                  </tr>
+              </thead>
+              <tbody id="callLogsBody" class="w-full text-center">
+                <tr class=" w-full text-center">
+                  <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                    No calls yet. Start by choosing an input method above.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentNumbers = [];
+    let campaignRunning = false;
+    let campaignStopped = false;
+    
+    // Panel navigation functions
+    function showPanel(panelId) {
+      document.querySelectorAll('[id$="Panel"]').forEach(p => p.classList.add('hidden'));
+      document.getElementById(panelId)?.classList.remove('hidden');
+    }
+    
+    function hideStep1() {
+      document.getElementById('step1').classList.add('hidden');
+    }
+    
+    function showStep1() {
+      document.getElementById('step1').classList.remove('hidden');
+      document.querySelectorAll('[id$="Panel"]').forEach(p => p.classList.add('hidden'));
+    }
+
+    // Step 1: Choose input method
+    document.getElementById('chooseTextCommand').addEventListener('click', () => {
+      hideStep1();
+      showPanel('textCommandPanel');
+    });
+
+    document.getElementById('chooseDirectNumber').addEventListener('click', () => {
+      hideStep1();
+      showPanel('directNumberPanel');
+    });
+
+    // Back buttons
+    document.getElementById('backFromText').addEventListener('click', showStep1);
+    document.getElementById('backFromDirect').addEventListener('click', showStep1);
+    
+    document.getElementById('backFromManual').addEventListener('click', () => {
+      showPanel('directNumberPanel');
+      hideStep1();
+    });
+    
+    document.getElementById('backFromRandom').addEventListener('click', () => {
+      showPanel('directNumberPanel');
+      hideStep1();
+    });
+
+    // Step 2b: Choose number source
+    document.getElementById('chooseManualEntry').addEventListener('click', () => {
+      showPanel('manualEntryPanel');
+    });
+
+    document.getElementById('chooseRandomGenerate').addEventListener('click', () => {
+      showPanel('randomGeneratePanel');
+    });
+
+    // Manual number entry
+    document.getElementById('loadManualNumbers').addEventListener('click', () => {
+      const input = document.getElementById('manualNumbersInput').value;
+      const status = document.getElementById('manualStatus');
+      
+      if (!input.trim()) {
+        status.innerHTML = '<span class="text-red-600">Please enter at least one number</span>';
+        return;
+      }
+      
+      const numbers = input.split(',').map(n => n.trim()).filter(n => n);
+      
+      fetch('/dialer/upload_numbers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ numbers: numbers.join('\n') })
+      })
+      .then(r => r.json())
+      .then(data => {
+        currentNumbers = numbers;
+        status.innerHTML = `<span class="text-green-600">✓ ${data.count} numbers loaded</span>`;
+        document.getElementById('loadedCount').textContent = data.count;
+        
+        setTimeout(() => {
+          showPanel('callControlPanel');
+          hideStep1();
+        }, 1000);
+      })
+      .catch(err => {
+        status.innerHTML = `<span class="text-red-600">✗ Error: ${err.message}</span>`;
+      });
+    });
+
+    // Random number generation
+    document.getElementById('generateRandomBtn').addEventListener('click', () => {
+      const status = document.getElementById('randomStatus');
+      
+      fetch('/dialer/upload_numbers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ numbers: '' })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.generated) {
+          currentNumbers = Array.from({ length: data.count }, (_, i) => `1800${Math.floor(100000 + Math.random() * 900000)}`);
+        }
+
+        document.getElementById('loadedCount').textContent = data.count;
+        document.getElementById('randomStatus').innerHTML = `<span class="text-green-600">✓ ${data.count} random numbers loaded</span>`;
+        
+        setTimeout(() => {
+          showPanel('callControlPanel');
+          hideStep1();
+        }, 1000);
+      })
+      .catch(err => {
+        document.getElementById('randomStatus').innerHTML = `<span class="text-red-600">✗ Error: ${err.message}</span>`;
+      });
+    });  
+
+    // Preview numbers
+    document.getElementById('previewNumbersBtn').addEventListener('click', () => {
+      const panel = document.getElementById('numberPreviewPanel');
+      const content = document.getElementById('previewContent');
+      
+      if (currentNumbers.length === 0) {
+        alert('No numbers loaded yet');
+        return;
+      }
+      
+      content.innerHTML = currentNumbers.map(num => 
+        `<div class="bg-gray-100 p-2 rounded text-center">${num}</div>`
+      ).join('');
+      
+      panel.classList.remove('hidden');
+    });
+
+    document.getElementById('closePreview').addEventListener('click', () => {
+      document.getElementById('numberPreviewPanel').classList.add('hidden');
+    });
+
+    // Start campaign
+    document.getElementById('startCampaignBtn').addEventListener('click', () => {
+      if (currentNumbers.length === 0) {
+        alert('No numbers loaded');
+        return;
+      }
+      
+      campaignRunning = true;
+      campaignStopped = false;
+      document.getElementById('startCampaignBtn').classList.add('hidden');
+      document.getElementById('stopCampaignBtn').classList.remove('hidden');
+      
+      const command = document.getElementById('customCommandInput').value || "Default call message";
+
+      fetch('/dialer/start_campaign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ command })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.error) {
+          console.log('Campaign started');
+        }
+      });
+    });
+
+    // Stop campaign
+    document.getElementById('stopCampaignBtn').addEventListener('click', () => {
+      campaignStopped = true;
+      campaignRunning = false;
+      document.getElementById('stopCampaignBtn').classList.add('hidden');
+      document.getElementById('startCampaignBtn').classList.remove('hidden');
+
+      fetch('/dialer/stop_campaign', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content }
+      })
+      .then(r => r.json())
+      .then(data => {
+        console.log(data.message || "Campaign stopped");
+        alert("Campaign stopped successfully");
+      })
+      .catch(err => console.error("Error stopping campaign:", err));
+    });
+
+    // AI Prompt
+    document.getElementById('aiPromptBtn').addEventListener('click', () => {
+      const text = document.getElementById('aiPromptInput').value;
+      const status = document.getElementById('aiPromptStatus');
+      
+      if (!text.trim()) {
+        status.innerHTML = '<span class="text-yellow-600">Please enter a command</span>';
+        return;
+      }
+      
+      fetch('/dialer/ai_prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ text })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          status.innerHTML = `<span class="text-green-600">✓ Calling Executed</span>`;
+          document.getElementById('aiPromptInput').value = '';
+        } else {
+          status.innerHTML = `<span class="text-yellow-600">⚠ ${data.message || data.error}</span>`;
+        }
+      });
+    });
+
+    // Reset
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      currentNumbers = [];
+      campaignRunning = false;
+      document.getElementById('loadedCount').textContent = '0';
+      document.getElementById('manualNumbersInput').value = '';
+      showStep1();
+      showPanel('');
+    });
+
+    // Clear logs
+    document.getElementById('clearLogsBtn').addEventListener('click', () => {
+      fetch('/dialer/clear_logs', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        }
+      })
+      .then(() => {
+        document.getElementById('callLogsBody').innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 w-full text-center">Logs cleared</td></tr>';
+      });
+    });
+
+    // Auto-refresh call logs
+    setInterval(() => {
+      fetch('/dialer/call_logs')
+        .then(r => r.json())
+        .then(data => {
+          const tbody = document.getElementById('callLogsBody');
+          if (data.logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No calls yet</td></tr>';
+            return;
+          }
+          
+          tbody.innerHTML = data.logs.reverse().slice(0, 50).map(log => `
+            <tr class="border-b hover:bg-gray-50 text-center transition">
+              <td class="px-4 py-3 font-mono text-gray-700">${log.number || '-'}</td>
+              <td class="px-4 py-3 text-gray-700">${log.action || '-'}</td>
+              <td class="px-4 py-3 text-gray-600 text-sm truncate max-w-[250px]" title="${log.command || ''}">
+                ${log.command ? log.command.slice(0, 50) + (log.command.length > 50 ? '…' : '') : '-'}
+              </td>
+              <td class="px-4 py-3">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                  log.status === 'completed' ? 'bg-green-100 text-green-800' :
+                  log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }">
+                  ${log.status}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-gray-700">${log.duration || 0}s</td>
+              <td class="px-4 py-3 text-gray-600 text-xs">${log.time || '-'}</td>
+            </tr>
+          `).join('');
+        });
+    }, 2000);
+  </script>
+
+</body>
+</html>

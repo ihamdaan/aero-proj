@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Blogs</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .glass-dark {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gray-50">
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-5xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+        <span class="text-6xl">📰</span> Blogs
+      </h1>
+      <p class="text-gray-600 text-lg">AI generated reading resources</p>
+    </div>
+
+    <!-- Blog List -->
+    <div class="space-y-4">
+      <% blogs = [
+        {
+          id: 1,
+          title: "How AI Code Generators Are Changing Programming Forever",
+          desc: "Explore how AI coding tools like GitHub Copilot and ChatGPT are reshaping the way developers write, debug, and optimize code.",
+          img: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=400&h=400&fit=crop",
+          grad: "from-blue-400 to-purple-500"
+        },
+        {
+          id: 2,
+          title: "Top 10 AI Tools Every Python Developer Should Know in 2025",
+          desc: "From Copilot to Codium, discover the most powerful AI tools that help Python developers accelerate coding, testing, and documentation.",
+          img: "https://images.unsplash.com/photo-1603791440384-56cd371ee9a7?w=400&h=400&fit=crop",
+          grad: "from-green-400 to-teal-500"
+        },
+        {
+          id: 3,
+          title: "Debugging Smarter: How AI Helps You Fix Code 10x Faster",
+          desc: "Learn how AI-driven debugging tools automatically detect, explain, and correct code issues in multiple languages.",
+          img: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=400&h=400&fit=crop",
+          grad: "from-orange-400 to-red-500"
+        },
+        {
+          id: 4,
+          title: "Designing Frontends with AI: Can Machines Code Beautiful Interfaces?",
+          desc: "Discover how AI UI builders and design copilots are revolutionizing frontend development, automating layout creation, and improving accessibility.",
+          img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=400&fit=crop",
+          grad: "from-purple-400 to-pink-500"
+        },
+        {
+          id: 5,
+          title: "Building APIs with AI: Automating the Backend",
+          desc: "How developers are using AI models to auto-generate, test, and document APIs — reducing backend dev time by over 50%.",
+          img: "https://images.unsplash.com/photo-1607706189992-eae578626c86?w=400&h=400&fit=crop",
+          grad: "from-indigo-400 to-blue-500"
+        },
+        {
+          id: 6,
+          title: "How AI Can Teach You to Code Like a Mentor",
+          desc: "AI tutors like ChatGPT and Replit Ghostwriter can now teach logic, syntax, and design patterns interactively — making self-learning programming easier than ever.",
+          img: "https://images.unsplash.com/photo-1596495577886-d920f1fb7238?w=400&h=400&fit=crop",
+          grad: "from-yellow-400 to-orange-500"
+        },
+        {
+          id: 7,
+          title: "Can AI Write Secure Code? The Truth Behind AI-Generated Apps",
+          desc: "A deep dive into AI’s role in writing secure and compliant code — and the pitfalls developers must watch for in automated coding systems.",
+          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS20bu9vj8naZ_PxrmmzFxk1zFsrK1RD-FuSw&s",
+          grad: "from-cyan-400 to-blue-500"
+        },
+        {
+          id: 8,
+          title: "Automated Code Reviews: How AI Ensures Cleaner Commits",
+          desc: "Discover how AI-driven tools perform code reviews faster and more accurately than humans — spotting vulnerabilities, inefficiencies, and style issues.",
+          img: "https://miro.medium.com/1*HEyuDA6Y8gOkNaHMPoU_ew.png",
+          grad: "from-rose-400 to-red-500"
+        },
+        {
+          id: 9,
+          title: "Pair Programming with AI: The Future of Developer Collaboration",
+          desc: "Pair programming is evolving — humans now code side by side with AI partners. See how dev teams use AI copilots for faster delivery and smarter solutions.",
+          img: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=400&fit=crop",
+          grad: "from-emerald-400 to-green-500"
+        },
+        {
+          id: 10,
+          title: "The Future of Programming: Will AI Replace Developers?",
+          desc: "A bold look at whether AI will augment or replace programmers. Understand where human creativity still outshines machine intelligence in software development.",
+          img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=400&fit=crop",
+          grad: "from-violet-400 to-purple-500"
+        }
+      ] %>
+
+      <% blogs.each do |blog| %>
+        <%= link_to view_blogpost_path(blog[:id]), class: "my-2 block" do %>
+          <div class="blog-card glass-dark rounded-2xl shadow-lg p-6 fade-in hover:shadow-2xl transition">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+              <div class="lg:col-span-1">
+                <div class="aspect-square rounded-xl overflow-hidden bg-gradient-to-br <%= blog[:grad] %> shadow-md">
+                  <img src="<%= blog[:img] %>" alt="<%= blog[:title] %>" class="blog-image w-full h-full object-cover">
+                </div>
+              </div>
+              <div class="lg:col-span-3">
+                <h2 class="text-2xl font-bold text-gray-800 mb-3 hover:text-blue-600 transition"><%= blog[:title] %></h2>
+                <p class="text-gray-600 leading-relaxed"><%= blog[:desc] %></p>
+                <div class="mt-4 flex items-center text-sm text-blue-600 font-semibold">Read More →</div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Floating Personalize Button -->
+    <div class="fixed bottom-6 right-6 group z-50">
+      <button
+        class="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-2xl p-4 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center glass-dark"
+      >
+        ✏️
+      </button>
+
+      <div class="absolute bottom-16 right-0 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 ease-out">
+        <div class="bg-white/80 backdrop-blur-lg border border-white/20 text-gray-800 text-sm rounded-2xl shadow-lg p-4 w-56 glass-dark">
+          <p class="font-semibold mb-2">✨ Personalize Content</p>
+          <p class="text-gray-600 text-xs leading-relaxed mb-2">
+            Want tailored AI articles based on your interests? Click here to customize topics and recommendations.
+          </p>
+          <div class="w-full">
+            <%= link_to "Personalize →", personalizedcontent_path, class: "w-full px-8 text-blue-800 rounded-xl py-2 text-sm font-medium hover:shadow-md rounded-2xl shadow-lg transition" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

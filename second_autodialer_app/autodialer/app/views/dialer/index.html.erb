@@ -186,7 +186,7 @@
             
             <button 
               id="startCampaignBtn"
-              class="w-full hover:text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+              class="w-full text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
               Start Calling
             </button>
             
@@ -262,282 +262,314 @@
   </div>
 
   <script>
-    // State management
-    let currentNumbers = [];
-    let campaignRunning = false;
-    let campaignStopped = false;
-    
-    // Panel navigation functions
-    function showPanel(panelId) {
-      document.querySelectorAll('[id$="Panel"]').forEach(p => p.classList.add('hidden'));
-      document.getElementById(panelId)?.classList.remove('hidden');
-    }
-    
-    function hideStep1() {
-      document.getElementById('step1').classList.add('hidden');
-    }
-    
-    function showStep1() {
-      document.getElementById('step1').classList.remove('hidden');
-      document.querySelectorAll('[id$="Panel"]').forEach(p => p.classList.add('hidden'));
-    }
+    document.addEventListener("turbo:load", () => {
+      if (window.autodialerInitialized) return;
+      window.autodialerInitialized = true;
 
-    // Step 1: Choose input method
-    document.getElementById('chooseTextCommand').addEventListener('click', () => {
-      hideStep1();
-      showPanel('textCommandPanel');
-    });
+      let currentNumbers = [];
+      let campaignRunning = false;
+      let campaignStopped = false;
 
-    document.getElementById('chooseDirectNumber').addEventListener('click', () => {
-      hideStep1();
-      showPanel('directNumberPanel');
-    });
-
-    // Back buttons
-    document.getElementById('backFromText').addEventListener('click', showStep1);
-    document.getElementById('backFromDirect').addEventListener('click', showStep1);
-    
-    document.getElementById('backFromManual').addEventListener('click', () => {
-      showPanel('directNumberPanel');
-      hideStep1();
-    });
-    
-    document.getElementById('backFromRandom').addEventListener('click', () => {
-      showPanel('directNumberPanel');
-      hideStep1();
-    });
-
-    // Step 2b: Choose number source
-    document.getElementById('chooseManualEntry').addEventListener('click', () => {
-      showPanel('manualEntryPanel');
-    });
-
-    document.getElementById('chooseRandomGenerate').addEventListener('click', () => {
-      showPanel('randomGeneratePanel');
-    });
-
-    // Manual number entry
-    document.getElementById('loadManualNumbers').addEventListener('click', () => {
-      const input = document.getElementById('manualNumbersInput').value;
-      const status = document.getElementById('manualStatus');
-      
-      if (!input.trim()) {
-        status.innerHTML = '<span class="text-red-600">Please enter at least one number</span>';
-        return;
+      function showPanel(panelId) {
+        document.querySelectorAll('[id$="Panel"]').forEach(p => p.classList.add('hidden'));
+        const el = document.getElementById(panelId);
+        if (el) el.classList.remove('hidden');
       }
-      
-      const numbers = input.split(',').map(n => n.trim()).filter(n => n);
-      
-      fetch('/dialer/upload_numbers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ numbers: numbers.join('\n') })
-      })
-      .then(r => r.json())
-      .then(data => {
-        currentNumbers = numbers;
-        status.innerHTML = `<span class="text-green-600">✓ ${data.count} numbers loaded</span>`;
-        document.getElementById('loadedCount').textContent = data.count;
-        
-        setTimeout(() => {
-          showPanel('callControlPanel');
+
+      function hideStep1() {
+        const el = document.getElementById('step1');
+        if (el) el.classList.add('hidden');
+      }
+
+      function showStep1() {
+        const el = document.getElementById('step1');
+        if (el) el.classList.remove('hidden');
+        document.querySelectorAll('[id$="Panel"]').forEach(p => p.classList.add('hidden'));
+      }
+
+      const chooseTextCommand = document.getElementById('chooseTextCommand');
+      if (chooseTextCommand) {
+        chooseTextCommand.addEventListener('click', () => {
           hideStep1();
-        }, 1000);
-      })
-      .catch(err => {
-        status.innerHTML = `<span class="text-red-600">✗ Error: ${err.message}</span>`;
-      });
-    });
+          showPanel('textCommandPanel');
+        });
+      }
 
-    // Random number generation
-    document.getElementById('generateRandomBtn').addEventListener('click', () => {
-      const status = document.getElementById('randomStatus');
-      
-      fetch('/dialer/upload_numbers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ numbers: '' })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.generated) {
-          currentNumbers = Array.from({ length: data.count }, (_, i) => `1800${Math.floor(100000 + Math.random() * 900000)}`);
-        }
-
-        document.getElementById('loadedCount').textContent = data.count;
-        document.getElementById('randomStatus').innerHTML = `<span class="text-green-600">✓ ${data.count} random numbers loaded</span>`;
-        
-        setTimeout(() => {
-          showPanel('callControlPanel');
+      const chooseDirectNumber = document.getElementById('chooseDirectNumber');
+      if (chooseDirectNumber) {
+        chooseDirectNumber.addEventListener('click', () => {
           hideStep1();
-        }, 1000);
-      })
-      .catch(err => {
-        document.getElementById('randomStatus').innerHTML = `<span class="text-red-600">✗ Error: ${err.message}</span>`;
-      });
-    });  
-
-    // Preview numbers
-    document.getElementById('previewNumbersBtn').addEventListener('click', () => {
-      const panel = document.getElementById('numberPreviewPanel');
-      const content = document.getElementById('previewContent');
-      
-      if (currentNumbers.length === 0) {
-        alert('No numbers loaded yet');
-        return;
+          showPanel('directNumberPanel');
+        });
       }
-      
-      content.innerHTML = currentNumbers.map(num => 
-        `<div class="bg-gray-100 p-2 rounded text-center">${num}</div>`
-      ).join('');
-      
-      panel.classList.remove('hidden');
-    });
 
-    document.getElementById('closePreview').addEventListener('click', () => {
-      document.getElementById('numberPreviewPanel').classList.add('hidden');
-    });
+      const backFromText = document.getElementById('backFromText');
+      if (backFromText) backFromText.addEventListener('click', showStep1);
 
-    // Start campaign
-    document.getElementById('startCampaignBtn').addEventListener('click', () => {
-      if (currentNumbers.length === 0) {
-        alert('No numbers loaded');
-        return;
+      const backFromDirect = document.getElementById('backFromDirect');
+      if (backFromDirect) backFromDirect.addEventListener('click', showStep1);
+
+      const backFromManual = document.getElementById('backFromManual');
+      if (backFromManual) {
+        backFromManual.addEventListener('click', () => {
+          showPanel('directNumberPanel');
+          hideStep1();
+        });
       }
-      
-      campaignRunning = true;
-      campaignStopped = false;
-      document.getElementById('startCampaignBtn').classList.add('hidden');
-      document.getElementById('stopCampaignBtn').classList.remove('hidden');
-      
-      const command = document.getElementById('customCommandInput').value || "Default call message";
 
-      fetch('/dialer/start_campaign', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ command })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (!data.error) {
-          console.log('Campaign started');
-        }
-      });
-    });
-
-    // Stop campaign
-    document.getElementById('stopCampaignBtn').addEventListener('click', () => {
-      campaignStopped = true;
-      campaignRunning = false;
-      document.getElementById('stopCampaignBtn').classList.add('hidden');
-      document.getElementById('startCampaignBtn').classList.remove('hidden');
-
-      fetch('/dialer/stop_campaign', {
-        method: 'POST',
-        headers: { 'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content }
-      })
-      .then(r => r.json())
-      .then(data => {
-        console.log(data.message || "Campaign stopped");
-        alert("Campaign stopped successfully");
-      })
-      .catch(err => console.error("Error stopping campaign:", err));
-    });
-
-    // AI Prompt
-    document.getElementById('aiPromptBtn').addEventListener('click', () => {
-      const text = document.getElementById('aiPromptInput').value;
-      const status = document.getElementById('aiPromptStatus');
-      
-      if (!text.trim()) {
-        status.innerHTML = '<span class="text-yellow-600">Please enter a command</span>';
-        return;
+      const backFromRandom = document.getElementById('backFromRandom');
+      if (backFromRandom) {
+        backFromRandom.addEventListener('click', () => {
+          showPanel('directNumberPanel');
+          hideStep1();
+        });
       }
-      
-      fetch('/dialer/ai_prompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ text })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          status.innerHTML = `<span class="text-green-600">✓ Calling Executed</span>`;
-          document.getElementById('aiPromptInput').value = '';
-        } else {
-          status.innerHTML = `<span class="text-yellow-600">⚠ ${data.message || data.error}</span>`;
-        }
-      });
-    });
 
-    // Reset
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      currentNumbers = [];
-      campaignRunning = false;
-      document.getElementById('loadedCount').textContent = '0';
-      document.getElementById('manualNumbersInput').value = '';
-      showStep1();
-      showPanel('');
-    });
+      const chooseManualEntry = document.getElementById('chooseManualEntry');
+      if (chooseManualEntry) {
+        chooseManualEntry.addEventListener('click', () => showPanel('manualEntryPanel'));
+      }
 
-    // Clear logs
-    document.getElementById('clearLogsBtn').addEventListener('click', () => {
-      fetch('/dialer/clear_logs', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-        }
-      })
-      .then(() => {
-        document.getElementById('callLogsBody').innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 w-full text-center">Logs cleared</td></tr>';
-      });
-    });
+      const chooseRandomGenerate = document.getElementById('chooseRandomGenerate');
+      if (chooseRandomGenerate) {
+        chooseRandomGenerate.addEventListener('click', () => showPanel('randomGeneratePanel'));
+      }
 
-    // Auto-refresh call logs
-    setInterval(() => {
-      fetch('/dialer/call_logs')
-        .then(r => r.json())
-        .then(data => {
-          const tbody = document.getElementById('callLogsBody');
-          if (data.logs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No calls yet</td></tr>';
+      const loadManualNumbers = document.getElementById('loadManualNumbers');
+      if (loadManualNumbers) {
+        loadManualNumbers.addEventListener('click', () => {
+          const input = document.getElementById('manualNumbersInput').value;
+          const status = document.getElementById('manualStatus');
+          if (!input.trim()) {
+            status.innerHTML = '<span class="text-red-600">Please enter at least one number</span>';
             return;
           }
-          
-          tbody.innerHTML = data.logs.reverse().slice(0, 50).map(log => `
-            <tr class="border-b hover:bg-gray-50 text-center transition">
-              <td class="px-4 py-3 font-mono text-gray-700">${log.number || '-'}</td>
-              <td class="px-4 py-3 text-gray-700">${log.action || '-'}</td>
-              <td class="px-4 py-3 text-gray-600 text-sm truncate max-w-[250px]" title="${log.command || ''}">
-                ${log.command ? log.command.slice(0, 50) + (log.command.length > 50 ? '…' : '') : '-'}
-              </td>
-              <td class="px-4 py-3">
-                <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                  log.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  log.status === 'failed' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }">
-                  ${log.status}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-gray-700">${log.duration || 0}s</td>
-              <td class="px-4 py-3 text-gray-600 text-xs">${log.time || '-'}</td>
-            </tr>
-          `).join('');
+
+          const numbers = input.split(',').map(n => n.trim()).filter(n => n);
+
+          fetch('/dialer/upload_numbers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ numbers: numbers.join('\n') })
+          })
+          .then(r => r.json())
+          .then(data => {
+            currentNumbers = numbers;
+            status.innerHTML = `<span class="text-green-600">✓ ${data.count} numbers loaded</span>`;
+            document.getElementById('loadedCount').textContent = data.count;
+
+            setTimeout(() => {
+              showPanel('callControlPanel');
+              hideStep1();
+            }, 1000);
+          })
+          .catch(err => {
+            status.innerHTML = `<span class="text-red-600">✗ Error: ${err.message}</span>`;
+          });
         });
-    }, 2000);
+      }
+
+      const generateRandomBtn = document.getElementById('generateRandomBtn');
+      if (generateRandomBtn) {
+        generateRandomBtn.addEventListener('click', () => {
+          const status = document.getElementById('randomStatus');
+          fetch('/dialer/upload_numbers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ numbers: '' })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.generated) {
+              currentNumbers = Array.from({ length: data.count }, (_, i) => `1800${Math.floor(100000 + Math.random() * 900000)}`);
+            }
+            document.getElementById('loadedCount').textContent = data.count;
+            status.innerHTML = `<span class="text-green-600">✓ ${data.count} random numbers loaded</span>`;
+
+            setTimeout(() => {
+              showPanel('callControlPanel');
+              hideStep1();
+            }, 1000);
+          })
+          .catch(err => {
+            status.innerHTML = `<span class="text-red-600">✗ Error: ${err.message}</span>`;
+          });
+        });
+      }
+
+      const previewNumbersBtn = document.getElementById('previewNumbersBtn');
+      if (previewNumbersBtn) {
+        previewNumbersBtn.addEventListener('click', () => {
+          const panel = document.getElementById('numberPreviewPanel');
+          const content = document.getElementById('previewContent');
+          if (currentNumbers.length === 0) {
+            alert('No numbers loaded yet');
+            return;
+          }
+
+          content.innerHTML = currentNumbers.map(num =>
+            `<div class="bg-gray-100 p-2 rounded text-center">${num}</div>`
+          ).join('');
+
+          panel.classList.remove('hidden');
+        });
+      }
+
+      const closePreview = document.getElementById('closePreview');
+      if (closePreview) {
+        closePreview.addEventListener('click', () => {
+          document.getElementById('numberPreviewPanel').classList.add('hidden');
+        });
+      }
+
+      const startCampaignBtn = document.getElementById('startCampaignBtn');
+      if (startCampaignBtn) {
+        startCampaignBtn.addEventListener('click', () => {
+          if (currentNumbers.length === 0) {
+            alert('No numbers loaded');
+            return;
+          }
+
+          campaignRunning = true;
+          campaignStopped = false;
+          startCampaignBtn.classList.add('hidden');
+          document.getElementById('stopCampaignBtn').classList.remove('hidden');
+
+          const command = document.getElementById('customCommandInput').value || "Default call message";
+
+          fetch('/dialer/start_campaign', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ command })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (!data.error) console.log('Campaign started');
+          });
+        });
+      }
+
+      const stopCampaignBtn = document.getElementById('stopCampaignBtn');
+      if (stopCampaignBtn) {
+        stopCampaignBtn.addEventListener('click', () => {
+          campaignStopped = true;
+          campaignRunning = false;
+          stopCampaignBtn.classList.add('hidden');
+          startCampaignBtn.classList.remove('hidden');
+
+          fetch('/dialer/stop_campaign', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content }
+          })
+          .then(r => r.json())
+          .then(data => {
+            console.log(data.message || "Campaign stopped");
+            alert("Campaign stopped successfully");
+          })
+          .catch(err => console.error("Error stopping campaign:", err));
+        });
+      }
+
+      const aiPromptBtn = document.getElementById('aiPromptBtn');
+      if (aiPromptBtn) {
+        aiPromptBtn.addEventListener('click', () => {
+          const text = document.getElementById('aiPromptInput').value;
+          const status = document.getElementById('aiPromptStatus');
+          if (!text.trim()) {
+            status.innerHTML = '<span class="text-yellow-600">Please enter a command</span>';
+            return;
+          }
+
+          fetch('/dialer/ai_prompt', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ text })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              status.innerHTML = `<span class="text-green-600">✓ Calling Executed</span>`;
+              document.getElementById('aiPromptInput').value = '';
+            } else {
+              status.innerHTML = `<span class="text-yellow-600">⚠ ${data.message || data.error}</span>`;
+            }
+          });
+        });
+      }
+
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          currentNumbers = [];
+          campaignRunning = false;
+          document.getElementById('loadedCount').textContent = '0';
+          document.getElementById('manualNumbersInput').value = '';
+          showStep1();
+          showPanel('');
+        });
+      }
+
+      const clearLogsBtn = document.getElementById('clearLogsBtn');
+      if (clearLogsBtn) {
+        clearLogsBtn.addEventListener('click', () => {
+          fetch('/dialer/clear_logs', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content }
+          })
+          .then(() => {
+            document.getElementById('callLogsBody').innerHTML =
+              '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 w-full text-center">Logs cleared</td></tr>';
+          });
+        });
+      }
+
+      setInterval(() => {
+        fetch('/dialer/call_logs')
+          .then(r => r.json())
+          .then(data => {
+            const tbody = document.getElementById('callLogsBody');
+            if (!tbody) return;
+
+            if (data.logs.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No calls yet</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = data.logs.reverse().slice(0, 50).map(log => `
+              <tr class="border-b hover:bg-gray-50 text-center transition">
+                <td class="px-4 py-3 font-mono text-gray-700">${log.number || '-'}</td>
+                <td class="px-4 py-3 text-gray-700">${log.action || '-'}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm truncate max-w-[250px]" title="${log.command || ''}">
+                  ${log.command ? log.command.slice(0, 50) + (log.command.length > 50 ? '…' : '') : '-'}
+                </td>
+                <td class="px-4 py-3">
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                    log.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }">
+                    ${log.status}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-gray-700">${log.duration || 0}s</td>
+                <td class="px-4 py-3 text-gray-600 text-xs">${log.time || '-'}</td>
+              </tr>
+            `).join('');
+          });
+      }, 2000);
+    });
   </script>
 
 </body>

@@ -135,7 +135,7 @@
           
           <button 
             id="loadManualNumbers"
-            class="w-full hover:text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
+            class="w-full text-blue-800 font-medium py-3 px-4 rounded-xl transition shadow-lg">
             Load Numbers
           </button>
           
@@ -145,7 +145,7 @@
         <!-- Step 3b: Random Generation -->
         <div id="randomGeneratePanel" class="glass-dark rounded-2xl shadow-2xl p-6 hidden fade-in">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Generate Random Numbers</h2>
+            <h2 class="text-xl font-semibold text-blue-800">Generate Random Numbers</h2>
             <button id="backFromRandom" class="text-sm text-gray-600 hover:text-gray-800">← Back</button>
           </div>
           
@@ -263,8 +263,13 @@
 
   <script>
     document.addEventListener("turbo:load", () => {
-      if (window.autodialerInitialized) return;
-      window.autodialerInitialized = true;
+      if (window.autodialerBound) {
+        document.querySelectorAll('[data-autodialer-init="true"]').forEach(el => {
+          const clone = el.cloneNode(true);
+          el.replaceWith(clone);
+        });
+      }
+      window.autodialerBound = true;
 
       let currentNumbers = [];
       let campaignRunning = false;
